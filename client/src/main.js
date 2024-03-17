@@ -4,7 +4,21 @@ import { createApp } from 'vue'
 import App from './App.vue'
 
 import axios from 'axios';
-import { toast } from 'vue3-toastify';
+import Vue3Toastify from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
-createApp(App).mount('#app')
+// const axiosInstance = axios.create({
+//     baseURL: 'http://localhost:3000'
+// })
+
+const app = createApp(App);
+
+axios.defaults.baseURL = 'http://localhost:3000'
+
+app.use(Vue3Toastify, {
+    autoClose: 1000,
+    hideProgressBar: true,
+    position: 'bottom-right',
+});
+
+app.mount('#app')
