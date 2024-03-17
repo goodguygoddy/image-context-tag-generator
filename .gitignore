@@ -1,0 +1,34 @@
+# Node - General
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+.pnpm-debug.log
+
+# Editor directories and files
+.idea
+.vscode
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# Vue client-specific
+/dist
+/public/build
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Fastify server-specific
+/logs
+*.log
+tmp/
