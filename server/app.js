@@ -2,7 +2,7 @@ import Fastify from 'fastify';
 import autoload from '@fastify/autoload';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { config } from 'dotenv'
+import { config } from 'dotenv';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import FastifyMongo from '@fastify/mongodb';
@@ -29,15 +29,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 
-fastify.register(cors); // CORS plugin
-fastify.register(multipart);
+await fastify.register(cors); // CORS plugin
+await fastify.register(multipart);
 
-fastify.register(FastifyMongo, {
+await fastify.register(FastifyMongo, {
   url: `mongodb://${process.env.MONGO_DB_HOST}:${process.env.MONGO_DB_PORT}/${process.env.MONGO_DB_NAME}`
 });
 
 // Auto-load routes
-fastify.register(autoload, {
+await fastify.register(autoload, {
   dir: join(__dirname, 'routes'),
   forceESM: true,
 });
