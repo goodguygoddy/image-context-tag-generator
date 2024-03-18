@@ -9,6 +9,22 @@ services:
     networks:
       - app-network
 
+  rabbitmq:
+    image: "rabbitmq:management"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    networks:
+      - app_network
+
+  ai-model:
+    build: .
+    depends_on:
+      - rabbitmq
+      - mongo
+    networks:
+      - app_network
+
   server:
     build:
       context: ./server
@@ -20,6 +36,7 @@ services:
       - MONGO_DB_PORT=27017
       - MONGO_DB_NAME=visualTechDB
     depends_on:
+      - rabbitmq
       - mongo
     networks:
       - app-network

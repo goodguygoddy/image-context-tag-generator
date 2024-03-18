@@ -6,7 +6,8 @@ import { config } from 'dotenv';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import FastifyMongo from '@fastify/mongodb';
-import { S3Client } from '@aws-sdk/client-s3'
+import { S3Client } from '@aws-sdk/client-s3';
+import { Connection } from 'rabbitmq-client';
 
 config();
 
@@ -33,6 +34,22 @@ const fastify = Fastify({
   }
 });
 
+const rabbit = new Connection({
+  protocol: 'amqp',
+  hostname: process.env.RABBITMQ_HOST || 'localhost',
+  port: parseInt(process.env.RABBITMQ_PORT, 10) || 5672,
+  username: process.env.RABBITMQ_USER || 'guest',
+  password: process.env.RABBITMQ_PASS || 'guest',
+  vhost: '/',
+});
+
+rabbit.on('error', (err) => {
+  fastify.log.error('RabbitMQ connection error:', err);
+});
+
+rabbit.on('connection', () => {
+  fastify.log.info('RabbitMQ connection established');
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -40,6 +57,7 @@ const __dirname = dirname(__filename);
 
 await fastify.register(cors); // CORS plugin
 await fastify.decorate('s3Client', s3Client);
+await fastify.decorate('rabbitMQ', rabbit);
 await fastify.register(multipart, {
   limits: {
     fileSize: 10 * 1024 * 1024 // 10MB in bytes

@@ -56,12 +56,12 @@ const images = async (fastify, opts) => {
 
       const db = fastify.mongo.db;
       const collection = db.collection('images');
-      const id = new fastify.mongo.ObjectId().toString();
+      const id = new fastify.mongo.ObjectId();
 
       try {
         const uploadParams = {
           Bucket: process.env.AWS_BUCKET_NAME,
-          Key: id,
+          Key: id.toString(),
           Body: file,
           ContentType: mimetype,
         };
@@ -79,6 +79,20 @@ const images = async (fastify, opts) => {
           tags: [],
           source: response.Location
         });
+
+        const rabbitMQ = fastify.rabbitMQ;
+
+
+        const pub = await rabbitMQ.createPublisher({
+          confirm: true,
+        });
+
+        await pub.send(
+          'image_queue',
+          Buffer.from(JSON.stringify({ id, source: response.Location })),
+        );
+
+        console.log('Message published to RabbitMQ');
 
         reply.code(201).send({ message: 'File uploaded successfully', response: response });
       } catch (error) {
