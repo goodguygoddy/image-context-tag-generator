@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { config } from 'dotenv'
 import cors from '@fastify/cors';
+import multipart from '@fastify/multipart';
 import FastifyMongo from '@fastify/mongodb';
 
 config();
@@ -29,9 +30,10 @@ const __dirname = dirname(__filename);
 
 
 fastify.register(cors); // CORS plugin
+fastify.register(multipart);
 
 fastify.register(FastifyMongo, {
-  url: `mongodb://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PASSWORD}@${process.env.MONGO_DB_HOST}:${process.env.MONGO_DB_PORT}/${process.env.MONGO_DB_NAME}?authSource=admin`
+  url: `mongodb://${process.env.MONGO_DB_HOST}:${process.env.MONGO_DB_PORT}/${process.env.MONGO_DB_NAME}`
 });
 
 // Auto-load routes
