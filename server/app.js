@@ -6,8 +6,20 @@ import { config } from 'dotenv';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import FastifyMongo from '@fastify/mongodb';
+import { S3Client } from '@aws-sdk/client-s3'
 
 config();
+
+const s3Config = {
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+};
+
+// Create an S3 client instance
+const s3Client = new S3Client(s3Config);
 
 const fastify = Fastify({
   logger: {
@@ -21,15 +33,13 @@ const fastify = Fastify({
   }
 });
 
-const options = {
-  ignoreTrailingSlash: true,
-};
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 
 await fastify.register(cors); // CORS plugin
+await fastify.decorate('s3Client', s3Client);
 await fastify.register(multipart);
 
 await fastify.register(FastifyMongo, {
@@ -54,4 +64,3 @@ const start = async () => {
 
 start();
 
-export { options };

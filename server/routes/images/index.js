@@ -1,5 +1,7 @@
 'use strict';
 
+import { Upload } from '@aws-sdk/lib-storage';
+
 const images = async (fastify, opts) => {
   fastify.route({
     method: 'GET',
@@ -49,40 +51,40 @@ const images = async (fastify, opts) => {
     method: 'POST',
     url: '/upload',
     handler: async (request, reply) => {
+      const data = await request.file();
+      const { file, mimetype } = data;
+
+      const db = fastify.mongo.db;
+      const collection = db.collection('images');
+      const id = fastify.mongo.ObjectId().toString();
+
       try {
-        const data = await request.file();
-        const filename = data.filename;
+        const uploadParams = {
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: id,
+          Body: file,
+          ContentType: mimetype,
+        };
 
-        // Handle the file upload logic here
-        console.log(filename);
+        const upload = new Upload({
+          client: fastify.s3Client,
+          params: uploadParams
+        });
 
-        // Create params for S3 upload
-        // const uploadParams = {
-        //   Bucket: 'your-bucket-name', // Replace with your actual bucket name
-        //   Key: filename, // File name you want to save as
-        //   Body: data.file, // The actual file
-        // };
+        const response = await upload.done();
 
-        // Upload file to S3
-        // s3.upload(uploadParams, (err, s3Response) => {
-        //   if (err) {
-        //     fastify.log.error(err);
-        //     reply.code(500).send({ error: 'Failed to upload file' });
-        //   } else {
-        //     reply.code(200).send({ message: 'File uploaded successfully', data: s3Response });
-        //   }
-        // });
+        await collection.insertOne({
+          _id: id,
+          context: "",
+          tags: [],
+          source: response.Location
+        });
 
-        reply.code(200).send("File received!");
+        reply.code(201).send({ message: 'File uploaded successfully', response: response });
       } catch (error) {
-        // Log the error
-        fastify.log.error(error);
-
-        // Respond with an error message
-        reply.code(500).send('Failed to upload file');
+        request.log.error(error);
+        reply.code(500).send({ error: 'Failed to upload file' });
       }
-
-
     },
   });
 };

@@ -1,12 +1,11 @@
 version: '3.8'
 
 services:
-  client:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-    ports:
-      - "4173:80"
+  mongo:
+    image: mongo:latest
+    command: ["mongod", "--quiet"]
+    volumes:
+      - mongo-data:/data/db
     networks:
       - app-network
 
@@ -25,11 +24,12 @@ services:
     networks:
       - app-network
 
-  mongo:
-    image: mongo:latest
-    command: ["mongod", "--quiet"]
-    volumes:
-      - mongo-data:/data/db
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "4173:80"
     networks:
       - app-network
 

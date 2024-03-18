@@ -56,7 +56,6 @@
   const isLoading = ref(false);
 
   const handleFileChange = (event) => {
-    console.log("I AM CALLED");
     const file = event.target.files[0];
 
     if (!file.type.startsWith('image/')) {
