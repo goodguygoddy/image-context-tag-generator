@@ -56,7 +56,7 @@ const images = async (fastify, opts) => {
 
       const db = fastify.mongo.db;
       const collection = db.collection('images');
-      const id = fastify.mongo.ObjectId().toString();
+      const id = new fastify.mongo.ObjectId().toString();
 
       try {
         const uploadParams = {

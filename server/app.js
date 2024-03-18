@@ -40,7 +40,11 @@ const __dirname = dirname(__filename);
 
 await fastify.register(cors); // CORS plugin
 await fastify.decorate('s3Client', s3Client);
-await fastify.register(multipart);
+await fastify.register(multipart, {
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB in bytes
+  }
+});
 
 await fastify.register(FastifyMongo, {
   url: `mongodb://${process.env.MONGO_DB_HOST}:${process.env.MONGO_DB_PORT}/${process.env.MONGO_DB_NAME}`
