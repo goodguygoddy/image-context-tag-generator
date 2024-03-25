@@ -1,12 +1,7 @@
 import { MongoClient } from 'mongodb';
-import { config } from 'dotenv';
 
-config();
-
-const url = `mongodb://${process.env.MONGO_DB_HOST}:${process.env.MONGO_DB_PORT}/${process.env.MONGO_DB_NAME}`;
-
+const url = process.env.MONGO_DB_URI;
 const dbName = process.env.DB_NAME;
-
 const client = new MongoClient(url);
 
 async function run() {

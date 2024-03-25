@@ -59,6 +59,7 @@ const images = async (fastify, opts) => {
       const id = new fastify.mongo.ObjectId();
 
       try {
+        // Uploading to S3 Bucket
         const uploadParams = {
           Bucket: process.env.AWS_BUCKET_NAME,
           Key: id.toString(),
@@ -67,34 +68,31 @@ const images = async (fastify, opts) => {
         };
 
         const upload = new Upload({
-          client: fastify.s3Client,
+          client: fastify.s3,
           params: uploadParams
         });
 
-        const response = await upload.done();
+        const s3response = await upload.done();
+        request.log.info('File uploaded to S3 successfully');
 
+        // Inserting to MongoDB
         await collection.insertOne({
           _id: id,
           context: "",
           tags: [],
-          source: response.Location
+          source: s3response.Location
         });
 
-        const rabbitMQ = fastify.rabbitMQ;
+        // Pushing to RabbitMQ
+        const channel = fastify.rabbitMQ.channel;
 
-
-        const pub = await rabbitMQ.createPublisher({
-          confirm: true,
+        const messageBuffer = Buffer.from(JSON.stringify({ id, source: s3response.Location }));
+        await channel.sendToQueue('image_queue', messageBuffer, {
+          persistent: true
         });
+        request.log.info('Message published to RabbitMQ');
 
-        await pub.send(
-          'image_queue',
-          Buffer.from(JSON.stringify({ id, source: response.Location })),
-        );
-
-        console.log('Message published to RabbitMQ');
-
-        reply.code(201).send({ message: 'File uploaded successfully', response: response });
+        reply.code(201).send({ message: 'File uploaded successfully', response: s3response });
       } catch (error) {
         request.log.error(error);
         reply.code(500).send({ error: 'Failed to upload file' });

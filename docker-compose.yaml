@@ -6,6 +6,11 @@ services:
     command: ["mongod", "--quiet"]
     volumes:
       - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep -q [m]ongod"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
     networks:
       - app-network
 
@@ -14,16 +19,27 @@ services:
     ports:
       - "15672:15672"
       - "5672:5672"
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
     networks:
-      - app_network
+      - app-network
 
   ai-model:
-    build: .
+    build:
+      context: ./ai-model
+      dockerfile: Dockerfile
     depends_on:
-      - rabbitmq
-      - mongo
+      rabbitmq:
+        condition: service_healthy
+        required: true
+      mongo:
+        condition: service_healthy
+        required: true
     networks:
-      - app_network
+      - app-network
 
   server:
     build:
@@ -31,13 +47,13 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    environment:
-      - MONGO_DB_HOST=mongo
-      - MONGO_DB_PORT=27017
-      - MONGO_DB_NAME=visualTechDB
     depends_on:
-      - rabbitmq
-      - mongo
+      rabbitmq:
+        condition: service_healthy
+        required: true
+      mongo:
+        condition: service_healthy
+        required: true
     networks:
       - app-network
 
