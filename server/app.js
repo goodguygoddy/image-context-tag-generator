@@ -10,7 +10,6 @@ import multipart from './plugin/multipart.js';
 import s3 from './plugin/s3.js';
 
 
-
 const fastify = Fastify({
   logger: {
     transport: {
